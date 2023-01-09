@@ -1,3 +1,6 @@
+def ip_address= "13.212.115.243"
+// def port=8081
+
 node {
     stage('test') {
         echo 'Knowledge Is Free'
@@ -34,24 +37,28 @@ node {
     }
     
     stage('Uploading-Artifact') {
-    
+        
+        def mavenPom = readMavenPom file: 'pom.xml'
+        
+        def nexusRepoName = mavenPom.version.endsWith ("SNAPSHOT") ? "upload-artifact-snapshot" : "upload-artifact"
+        
     echo "=======================================Uploading Artifact========================================="
     
         nexusArtifactUploader artifacts: [
     [
-        artifactId: 'maven-web-application', 
+        artifactId: "${mavenPom.artifactId}", 
         classifier: '', 
-        file: 'target/maven-web-application.war', 
-        type: 'war'
+        file: "target/${mavenPom.artifactId}.war", 
+        type: "${mavenPom.packaging}"
     ]
 ],
     credentialsId: 'nexus3', 
-    groupId: 'com.mt', 
-    nexusUrl: '172.31.7.77:8081', 
+    groupId: "${mavenPom.groupId}", 
+    nexusUrl: "${ip_address}:8081", 
     nexusVersion: 'nexus3', 
-    protocol: 'http',
-    repository: 'upload-artifact/', 
-    version: '2.0'
+    protocol: 'http', 
+    repository: "${nexusRepoName}", 
+    version: "${mavenPom.version}"
     
     echo "=======================================Artifact Uploaded========================================="
         
